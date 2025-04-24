@@ -1,21 +1,19 @@
 #include "ReagentBankAccount.h"
 
 // Add player scripts
-class npc_reagent_banker_account : public CreatureScript
+class mod_reagent_bank_account : public CreatureScript
 {
 private:
-    std::string GetItemLink(uint32 entry, WorldSession* session) const
+    std::string GetItemLink(uint32 entry, WorldSession *session) const
     {
         int loc_idx = session->GetSessionDbLocaleIndex();
         const ItemTemplate *temp = sObjectMgr->GetItemTemplate(entry);
         std::string name = temp->Name1;
-        if (ItemLocale const* il = sObjectMgr->GetItemLocale(temp->ItemId))
+        if (ItemLocale const *il = sObjectMgr->GetItemLocale(temp->ItemId))
             ObjectMgr::GetLocaleString(il->Name, loc_idx, name);
 
         std::ostringstream oss;
-        oss << "|c" << std::hex << ItemQualityColors[temp->Quality] << std::dec <<
-            "|Hitem:" << temp->ItemId << ":" <<
-            (uint32)0 << "|h[" << name << "]|h|r";
+        oss << "|c" << std::hex << ItemQualityColors[temp->Quality] << std::dec << "|Hitem:" << temp->ItemId << ":" << (uint32)0 << "|h[" << name << "]|h|r";
 
         return oss.str();
     }
@@ -38,11 +36,11 @@ private:
         return ss.str();
     }
 
-    void WithdrawItem(Player* player, uint32 entry)
+    void WithdrawItem(Player *player, uint32 entry)
     {
         // This query can be changed to async to improve performance, but there will be some visual bugs because the query will not be done executing when the menu refreshes
-        std::string query = "SELECT amount FROM custom_reagent_bank_account WHERE account_id = " + std::to_string(player->GetSession()->GetAccountId()) + " AND item_entry = " + std::to_string(entry);
-        QueryResult result = CharacterDatabase.Query("SELECT amount FROM custom_reagent_bank_account WHERE account_id = " + std::to_string(player->GetSession()->GetAccountId()) + " AND item_entry = " + std::to_string(entry));
+        std::string query = "SELECT amount FROM mod_reagent_bank_account WHERE account_id = " + std::to_string(player->GetSession()->GetAccountId()) + " AND item_entry = " + std::to_string(entry);
+        QueryResult result = CharacterDatabase.Query("SELECT amount FROM mod_reagent_bank_account WHERE account_id = " + std::to_string(player->GetSession()->GetAccountId()) + " AND item_entry = " + std::to_string(entry));
         if (result)
         {
             uint32 storedAmount = (*result)[0].Get<uint32>();
@@ -55,8 +53,8 @@ private:
                 InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, entry, storedAmount);
                 if (msg == EQUIP_ERR_OK)
                 {
-                    CharacterDatabase.Execute("DELETE FROM custom_reagent_bank_account WHERE account_id = {} AND item_entry = {}", player->GetSession()->GetAccountId(), entry);
-                    Item* item = player->StoreNewItem(dest, entry, true);
+                    CharacterDatabase.Execute("DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND item_entry = {}", player->GetSession()->GetAccountId(), entry);
+                    Item *item = player->StoreNewItem(dest, entry, true);
                     player->SendNewItem(item, storedAmount, true, false);
                 }
                 else
@@ -72,8 +70,8 @@ private:
                 InventoryResult msg = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, entry, stackSize);
                 if (msg == EQUIP_ERR_OK)
                 {
-                    CharacterDatabase.Execute("UPDATE custom_reagent_bank_account SET amount = {} WHERE account_id = {} AND item_entry = {}", storedAmount - stackSize, player->GetSession()->GetAccountId(), entry);
-                    Item* item = player->StoreNewItem(dest, entry, true);
+                    CharacterDatabase.Execute("UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND item_entry = {}", storedAmount - stackSize, player->GetSession()->GetAccountId(), entry);
+                    Item *item = player->StoreNewItem(dest, entry, true);
                     player->SendNewItem(item, stackSize, true, false);
                 }
                 else
@@ -85,16 +83,16 @@ private:
         }
     }
 
-    void UpdateItemCount(std::map<uint32, uint32> &entryToAmountMap, std::map<uint32, uint32> &entryToSubclassMap, std::map<uint32, uint32> &itemsAddedMap, Item* pItem, Player* player, uint32 bagSlot, uint32 itemSlot)
+    void UpdateItemCount(std::map<uint32, uint32> &entryToAmountMap, std::map<uint32, uint32> &entryToSubclassMap, std::map<uint32, uint32> &itemsAddedMap, Item *pItem, Player *player, uint32 bagSlot, uint32 itemSlot)
     {
         uint32 count = pItem->GetCount();
         ItemTemplate const *itemTemplate = pItem->GetTemplate();
-        
+
         if (!(itemTemplate->Class == ITEM_CLASS_TRADE_GOODS || itemTemplate->Class == ITEM_CLASS_GEM) || itemTemplate->GetMaxStackSize() == 1)
             return;
         uint32 itemEntry = itemTemplate->ItemId;
         uint32 itemSubclass = itemTemplate->SubClass;
-        
+
         // Put gems to ITEM_SUBCLASS_JEWELCRAFTING section
         if (itemTemplate->Class == ITEM_CLASS_GEM)
         {
@@ -109,7 +107,7 @@ private:
         }
         else
         {
-			uint32 existingCount = entryToAmountMap.find(itemEntry)->second;
+            uint32 existingCount = entryToAmountMap.find(itemEntry)->second;
             entryToAmountMap[itemEntry] = existingCount + count;
         }
 
@@ -120,7 +118,7 @@ private:
         }
         else
         {
-			uint32 existingCount = itemsAddedMap.find(itemEntry)->second;
+            uint32 existingCount = itemsAddedMap.find(itemEntry)->second;
             itemsAddedMap[itemEntry] = existingCount + count;
         }
 
@@ -128,10 +126,12 @@ private:
         player->DestroyItem(bagSlot, itemSlot, true);
     }
 
-    void DepositAllReagents(Player* player) {
+    void DepositAllReagents(Player *player)
+    {
         WorldSession *session = player->GetSession();
-        std::string query = "SELECT item_entry, item_subclass, amount FROM custom_reagent_bank_account WHERE account_id = " + std::to_string(player->GetSession()->GetAccountId());
-        session->GetQueryProcessor().AddCallback( CharacterDatabase.AsyncQuery(query).WithCallback([=, this](QueryResult result) {
+        std::string query = "SELECT item_entry, item_subclass, amount FROM mod_reagent_bank_account WHERE account_id = " + std::to_string(player->GetSession()->GetAccountId());
+        session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithCallback([=, this](QueryResult result)
+                                                                                                  {
             std::map<uint32, uint32> entryToAmountMap;
             std::map<uint32, uint32> entryToSubclassMap;
             std::map<uint32, uint32> itemsAddedMap;
@@ -175,7 +175,7 @@ private:
                     uint32 itemEntry = mapEntry.first;
                     uint32 itemAmount = mapEntry.second;
                     uint32 itemSubclass = entryToSubclassMap.find(itemEntry)->second;
-                    trans->Append("REPLACE INTO custom_reagent_bank_account (account_id, item_entry, item_subclass, amount) VALUES ({}, {}, {}, {})", player->GetSession()->GetAccountId(), itemEntry, itemSubclass, itemAmount);
+                    trans->Append("REPLACE INTO mod_reagent_bank_account (account_id, item_entry, item_subclass, amount) VALUES ({}, {}, {}, {})", player->GetSession()->GetAccountId(), itemEntry, itemSubclass, itemAmount);
                 }
                 CharacterDatabase.CommitTransaction(trans);
             }
@@ -196,16 +196,15 @@ private:
             else
             {
                 ChatHandler(player->GetSession()).PSendSysMessage("No reagents to deposit.");
-            }
-        }));
+            } }));
 
         CloseGossipMenuFor(player);
     }
 
 public:
-    npc_reagent_banker_account() : CreatureScript("npc_reagent_banker_account") { }
+    mod_reagent_bank_account() : CreatureScript("mod_reagent_bank_account") {}
 
-    bool OnGossipHello(Player* player, Creature* creature) override
+    bool OnGossipHello(Player *player, Creature *creature) override
     {
         AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, "Deposit All Reagents", DEPOSIT_ALL_REAGENTS, 0);
         AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, GetItemIcon(2589, 30, 30, -18, 0) + "Cloth", ITEM_SUBCLASS_CLOTH, 0);
@@ -227,7 +226,7 @@ public:
         return true;
     }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 item_subclass, uint32 gossipPageNumber) override
+    bool OnGossipSelect(Player *player, Creature *creature, uint32 item_subclass, uint32 gossipPageNumber) override
     {
         player->PlayerTalkClass->ClearMenus();
         if (item_subclass > MAX_PAGE_NUMBER)
@@ -264,13 +263,13 @@ public:
         }
     }
 
-    void ShowReagentItems(Player* player, Creature* creature, uint32 item_subclass, uint16 gossipPageNumber)
+    void ShowReagentItems(Player *player, Creature *creature, uint32 item_subclass, uint16 gossipPageNumber)
     {
-        WorldSession* session = player->GetSession();
-        std::string query = "SELECT item_entry, amount FROM custom_reagent_bank_account WHERE account_id = " + std::to_string(player->GetSession()->GetAccountId()) + " AND item_subclass = " +
-                std::to_string(item_subclass) + " ORDER BY item_entry DESC";
+        WorldSession *session = player->GetSession();
+        std::string query = "SELECT item_entry, amount FROM mod_reagent_bank_account WHERE account_id = " + std::to_string(player->GetSession()->GetAccountId()) + " AND item_subclass = " +
+                            std::to_string(item_subclass) + " ORDER BY item_entry DESC";
         session->GetQueryProcessor().AddCallback(CharacterDatabase.AsyncQuery(query).WithCallback([=, this](QueryResult result)
-        {
+                                                                                                  {
             uint32 startValue = (gossipPageNumber * (MAX_OPTIONS));
             uint32 endValue = (gossipPageNumber + 1) * (MAX_OPTIONS) - 1;
             std::map<uint32, uint32> entryToAmountMap;
@@ -301,13 +300,12 @@ public:
                 AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, GetItemIcon(itemEntry, 30, 30, -18, 0) + GetItemLink(itemEntry, session) + " (" + std::to_string(entryToAmountMap.find(itemEntry)->second) + ")", itemEntry, gossipPageNumber);
             }
             AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, "|TInterface/ICONS/Ability_Spy:30:30:-18:0|tBack...", MAIN_MENU, 0);
-            SendGossipMenuFor(player, NPC_TEXT_ID, creature->GetGUID());
-        }));
+            SendGossipMenuFor(player, NPC_TEXT_ID, creature->GetGUID()); }));
     }
 };
 
 // Add all scripts in one
 void AddSC_mod_reagent_bank_account()
 {
-    new npc_reagent_banker_account();
+    new mod_reagent_bank_account();
 }
