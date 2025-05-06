@@ -3,11 +3,16 @@
 ########################################
 # Reagent Bank Account Config
 ########################################
-#
+
 #    ReagentBankAccount.Enable
 #        Description: Enable the reagent bank (account-wide)
 #        Default:     0 - Disabled
 #                     1 - Enabled
-#
-
 ReagentBankAccount.Enable = 1
+
+
+#    ReagentBankAccount.MaxOptionsPerPage
+#        Description: Number of items shown per page in the reagent bank NPC menu
+#        Default:     7
+#
+ReagentBankAccount.MaxOptionsPerPage = 7
