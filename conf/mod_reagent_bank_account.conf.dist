@@ -10,6 +10,11 @@
 #                     1 - Enabled
 ReagentBankAccount.Enable = 1
 
+#    ReagentBankAccount.AccountWide
+#        Description: Account-wide reagent bank
+#        Default:     0 - Disabled
+#                     1 - Enabled
+ReagentBankAccount.AccountWide = 0
 
 #    ReagentBankAccount.MaxOptionsPerPage
 #        Description: Number of items shown per page in the reagent bank NPC menu
