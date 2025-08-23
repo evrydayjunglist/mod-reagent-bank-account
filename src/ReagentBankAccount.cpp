@@ -128,8 +128,8 @@ private:
   {
     uint32 accountKey, guidKey;
     GetStorageKeys(player, accountKey, guidKey);
-    QueryResult result = CharacterDatabase.PQuery(
-        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = %u AND guid = %u AND item_entry = %u",
+    QueryResult result = CharacterDatabase.Query(
+        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}",
         accountKey, guidKey, entry);
     if (result)
     {
@@ -203,8 +203,8 @@ private:
   {
     uint32 accountKey, guidKey;
     GetStorageKeys(player, accountKey, guidKey);
-    QueryResult result = CharacterDatabase.PQuery(
-        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = %u AND guid = %u AND item_entry = %u",
+    QueryResult result = CharacterDatabase.Query(
+        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}",
         accountKey, guidKey, entry);
     if (!result)
       return;
@@ -236,8 +236,8 @@ private:
   {
     uint32 accountKey, guidKey;
     GetStorageKeys(player, accountKey, guidKey);
-    QueryResult result = CharacterDatabase.PQuery(
-        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = %u AND guid = %u AND item_entry = %u",
+    QueryResult result = CharacterDatabase.Query(
+        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}",
         accountKey, guidKey, entry);
     if (!result)
       return;
@@ -271,8 +271,8 @@ private:
   {
     uint32 accountKey, guidKey;
     GetStorageKeys(player, accountKey, guidKey);
-    QueryResult result = CharacterDatabase.PQuery(
-        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = %u AND guid = %u AND item_entry = %u",
+    QueryResult result = CharacterDatabase.Query(
+        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}",
         accountKey, guidKey, entry);
     if (!result)
       return;
@@ -312,8 +312,8 @@ private:
   {
     uint32 accountKey, guidKey;
     GetStorageKeys(player, accountKey, guidKey);
-    QueryResult result = CharacterDatabase.PQuery(
-        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = %u AND guid = %u AND item_entry = %u",
+    QueryResult result = CharacterDatabase.Query(
+        "SELECT amount FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}",
         accountKey, guidKey, itemEntry);
     uint32 stored = result ? (*result)[0].Get<uint32>() : 0;
     const ItemTemplate *temp = sObjectMgr->GetItemTemplate(itemEntry);
@@ -578,8 +578,8 @@ private:
   {
     uint32 accountKey, guidKey;
     GetStorageKeys(player, accountKey, guidKey);
-    QueryResult result = CharacterDatabase.PQuery(
-        "SELECT item_entry, amount FROM mod_reagent_bank_account WHERE account_id = %u AND guid = %u AND item_subclass = %u",
+    QueryResult result = CharacterDatabase.Query(
+        "SELECT item_entry, amount FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_subclass = {}",
         accountKey, guidKey, item_subclass);
 
     if (!result)
