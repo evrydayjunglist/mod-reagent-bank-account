@@ -138,7 +138,7 @@ private:
       if (!temp)
       {
         ChatHandler(player->GetSession())
-            .PSendSysMessage("Error: Item template not found for entry %u.",
+            .PSendSysMessage("Error: Item template not found for entry {}.",
                              entry);
         return;
       }
@@ -151,21 +151,21 @@ private:
                                                       entry, storedAmount);
         if (msg == EQUIP_ERR_OK)
         {
-          CharacterDatabase.Execute(
+          CharacterDatabase.DirectExecute(
               "DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}",
               accountKey, guidKey, entry);
           Item *item = player->StoreNewItem(dest, entry, true);
           player->SendNewItem(item, storedAmount, true, false);
           ChatHandler(player->GetSession())
-              .PSendSysMessage("Withdrew %u x %s.", storedAmount,
-                               temp->Name1.c_str());
+              .PSendSysMessage("Withdrew {} x {}.", storedAmount,
+                               temp->Name1);
         }
         else
         {
           player->SendEquipError(msg, nullptr, nullptr, entry);
           ChatHandler(player->GetSession())
-              .PSendSysMessage("Not enough bag space to withdraw %u x %s.",
-                               storedAmount, temp->Name1.c_str());
+              .PSendSysMessage("Not enough bag space to withdraw {} x {}.",
+                               storedAmount, temp->Name1);
           return;
         }
       }
@@ -177,21 +177,21 @@ private:
                                                       entry, stackSize);
         if (msg == EQUIP_ERR_OK)
         {
-          CharacterDatabase.Execute(
+          CharacterDatabase.DirectExecute(
               "UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND guid = {} AND item_entry = {}",
               storedAmount - stackSize, accountKey, guidKey, entry);
           Item *item = player->StoreNewItem(dest, entry, true);
           player->SendNewItem(item, stackSize, true, false);
           ChatHandler(player->GetSession())
-              .PSendSysMessage("Withdrew %u x %s.", stackSize,
-                               temp->Name1.c_str());
+              .PSendSysMessage("Withdrew {} x {}.", stackSize,
+                               temp->Name1);
         }
         else
         {
           player->SendEquipError(msg, nullptr, nullptr, entry);
           ChatHandler(player->GetSession())
-              .PSendSysMessage("Not enough bag space to withdraw %u x %s.",
-                               stackSize, temp->Name1.c_str());
+              .PSendSysMessage("Not enough bag space to withdraw {} x {}.",
+                               stackSize, temp->Name1);
           return;
         }
       }
@@ -219,16 +219,16 @@ private:
     if (msg != EQUIP_ERR_OK)
     {
       player->SendEquipError(msg, nullptr, nullptr, entry);
-      ChatHandler(player->GetSession()).PSendSysMessage("Not enough space to withdraw 1 x %s.", temp->Name1.c_str());
+      ChatHandler(player->GetSession()).PSendSysMessage("Not enough space to withdraw 1 x {}.", temp->Name1);
       return;
     }
     if (stored == 1)
-      CharacterDatabase.Execute("DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}", accountKey, guidKey, entry);
+      CharacterDatabase.DirectExecute("DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}", accountKey, guidKey, entry);
     else
-      CharacterDatabase.Execute("UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND guid = {} AND item_entry = {}", stored - 1, accountKey, guidKey, entry);
+      CharacterDatabase.DirectExecute("UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND guid = {} AND item_entry = {}", stored - 1, accountKey, guidKey, entry);
     Item *item = player->StoreNewItem(dest, entry, true);
     player->SendNewItem(item, 1, true, false);
-    ChatHandler(player->GetSession()).PSendSysMessage("Withdrew 1 x %s.", temp->Name1.c_str());
+    ChatHandler(player->GetSession()).PSendSysMessage("Withdrew 1 x {}.", temp->Name1);
   }
 
   // Withdraw up to one full stack (or remaining if smaller)
@@ -254,16 +254,16 @@ private:
     if (msg != EQUIP_ERR_OK)
     {
       player->SendEquipError(msg, nullptr, nullptr, entry);
-      ChatHandler(player->GetSession()).PSendSysMessage("Not enough space to withdraw %u x %s.", toGive, temp->Name1.c_str());
+      ChatHandler(player->GetSession()).PSendSysMessage("Not enough space to withdraw {} x {}.", toGive, temp->Name1);
       return;
     }
     if (toGive == stored)
-      CharacterDatabase.Execute("DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}", accountKey, guidKey, entry);
+      CharacterDatabase.DirectExecute("DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}", accountKey, guidKey, entry);
     else
-      CharacterDatabase.Execute("UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND guid = {} AND item_entry = {}", stored - toGive, accountKey, guidKey, entry);
+      CharacterDatabase.DirectExecute("UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND guid = {} AND item_entry = {}", stored - toGive, accountKey, guidKey, entry);
     Item *item = player->StoreNewItem(dest, entry, true);
     player->SendNewItem(item, toGive, true, false);
-    ChatHandler(player->GetSession()).PSendSysMessage("Withdrew %u x %s.", toGive, temp->Name1.c_str());
+    ChatHandler(player->GetSession()).PSendSysMessage("Withdrew {} x {}.", toGive, temp->Name1);
   }
 
   // Withdraw all (multiple stacks as needed)
@@ -292,7 +292,7 @@ private:
       if (msg != EQUIP_ERR_OK)
       {
         player->SendEquipError(msg, nullptr, nullptr, entry);
-        ChatHandler(player->GetSession()).PSendSysMessage("Bag full after withdrawing %u x %s (remaining %u).", givenTotal, temp->Name1.c_str(), remaining);
+        ChatHandler(player->GetSession()).PSendSysMessage("Bag full after withdrawing {} x {} (remaining {}).", givenTotal, temp->Name1, remaining);
         break;
       }
       Item *item = player->StoreNewItem(dest, entry, true);
@@ -301,11 +301,11 @@ private:
       remaining -= toGive;
     }
     if (remaining == 0)
-      CharacterDatabase.Execute("DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}", accountKey, guidKey, entry);
+      CharacterDatabase.DirectExecute("DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}", accountKey, guidKey, entry);
     else
-      CharacterDatabase.Execute("UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND guid = {} AND item_entry = {}", remaining, accountKey, guidKey, entry);
+      CharacterDatabase.DirectExecute("UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND guid = {} AND item_entry = {}", remaining, accountKey, guidKey, entry);
     if (givenTotal > 0)
-      ChatHandler(player->GetSession()).PSendSysMessage("Withdrew %u x %s.", givenTotal, temp->Name1.c_str());
+      ChatHandler(player->GetSession()).PSendSysMessage("Withdrew {} x {}.", givenTotal, temp->Name1);
   }
 
   void ShowItemWithdrawMenu(Player *player, Creature *creature, uint32 category, uint16 pageIndex, uint32 itemEntry)
@@ -610,19 +610,19 @@ private:
         {
           // Remove or update the reagent in the DB
           if (toGive == remaining)
-            CharacterDatabase.Execute(
+            CharacterDatabase.DirectExecute(
                 "DELETE FROM mod_reagent_bank_account WHERE account_id = {} AND guid = {} AND item_entry = {}",
                 accountKey, guidKey, itemEntry);
           else
-            CharacterDatabase.Execute(
+            CharacterDatabase.DirectExecute(
                 "UPDATE mod_reagent_bank_account SET amount = {} WHERE account_id = {} AND guid = {} AND item_entry = {}",
                 remaining - toGive, accountKey, guidKey, itemEntry);
 
           Item *item = player->StoreNewItem(dest, itemEntry, true);
           player->SendNewItem(item, toGive, true, false);
           ChatHandler(player->GetSession())
-              .PSendSysMessage("Withdrew %u x %s.", toGive,
-                               temp->Name1.c_str());
+              .PSendSysMessage("Withdrew {} x {}.", toGive,
+                               temp->Name1);
           anyWithdrawn = true;
           remaining -= toGive;
         }
@@ -630,8 +630,8 @@ private:
         {
           player->SendEquipError(msg, nullptr, nullptr, itemEntry);
           ChatHandler(player->GetSession())
-              .PSendSysMessage("Not enough bag space to withdraw %u x %s.",
-                               toGive, temp->Name1.c_str());
+              .PSendSysMessage("Not enough bag space to withdraw {} x {}.",
+                               toGive, temp->Name1);
           break;
         }
       }
